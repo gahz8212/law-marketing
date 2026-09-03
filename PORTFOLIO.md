@@ -52,22 +52,22 @@
 
 ```mermaid
 graph LR
-    classDef input fill:#F8FAFC,stroke:#64748B,stroke-width:2px,color:#0F172A,font-weight:bold;
-    classDef ai fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A,font-weight:bold;
-    classDef ui fill:#FAF5FF,stroke:#A855F7,stroke-width:2px,color:#581C87,font-weight:bold;
-    classDef deploy fill:#ECFDF5,stroke:#10B981,stroke-width:2px,color:#064E3B,font-weight:bold;
+    classDef input fill:#F8FAFC,stroke:#64748B,stroke-width:2.5px,color:#0F172A,font-size:16px;
+    classDef ai fill:#EFF6FF,stroke:#3B82F6,stroke-width:2.5px,color:#1E3A8A,font-size:16px;
+    classDef ui fill:#FAF5FF,stroke:#A855F7,stroke-width:2.5px,color:#581C87,font-size:16px;
+    classDef deploy fill:#ECFDF5,stroke:#10B981,stroke-width:2.5px,color:#064E3B,font-size:16px;
 
-    A["📥 1. 판결문 인제스천<br/>━━━━━━━━━━━━━<br/>• 판결문 PDF / 사진 OCR<br/>• 사내 20대 판례 데이터"]:::input
+    A["<b style='font-size:18px;'>📥 1. 판결문 인제스천</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• 판결문 PDF / 사진 OCR<br/>• 사내 20대 판례 데이터</span>"]:::input
     
-    B["🧠 2. AI 멀티모달 가공<br/>━━━━━━━━━━━━━<br/>• Gemini 3.5 : 2,000자 블로그<br/>• Edge-TTS : 30초 성우 음성<br/>• 무상표 뉴스 인포그래픽"]:::ai
+    B["<b style='font-size:18px;'>🧠 2. AI 멀티모달 가공</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• Gemini 3.5 : 2,000자 블로그<br/>• Edge-TTS : 30초 성우 음성<br/>• 무상표 뉴스 인포그래픽</span>"]:::ai
     
-    C["🖥️ 3. 마케터 스튜디오<br/>━━━━━━━━━━━━━<br/>• 실시간 원고 에디터<br/>• 로펌 화이트라벨링<br/>• 8단계 인터랙티브 튜토리얼"]:::ui
+    C["<b style='font-size:18px;'>🖥️ 3. 마케터 스튜디오</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• 실시간 원고 에디터<br/>• 로펌 화이트라벨링<br/>• 8단계 인터랙티브 가이드</span>"]:::ui
     
-    D["🚀 4. 멀티채널 자동 배포<br/>━━━━━━━━━━━━━<br/>• Slack : 실시간 승인 핑<br/>• Notion : 콘텐츠 캘린더<br/>• n8n : 블로그 예약 발행"]:::deploy
+    D["<b style='font-size:18px;'>🚀 4. 멀티채널 자동 배포</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• Slack : 실시간 승인 알림<br/>• Notion : 콘텐츠 캘린더<br/>• n8n : 블로그 예약 발행</span>"]:::deploy
 
-    A ==>|텍스트 추출| B
-    B ==>|5-in-1 에셋 번들| C
-    C ==>|원클릭 발행 트리거| D
+    A ==>|<b style='font-size:14px;'>텍스트 추출</b>| B
+    B ==>|<b style='font-size:14px;'>5-in-1 에셋 번들</b>| C
+    C ==>|<b style='font-size:14px;'>원클릭 배포</b>| D
 ```
 
 ### (2) 데이터 처리 시퀀스 (Data Flow Sequence)
@@ -85,7 +85,7 @@ sequenceDiagram
     S->>B: 2. 에셋 생성 요청 (REST API)
     B->>AI: 3. 비식별화 요약 & 음성 합성
     AI-->>B: 4. 원고·카드뉴스·MP3 번들 반환
-    B-->>S: 5. 3초 내 실시간 화면 렌더링
+    B-->>S: 5. 0.07초 내 실시간 화면 렌더링
     M->>S: 6. 원고 검수 후 [자동 발행 실행]
     S->>D: 7. 슬랙 단톡방 알림 띵동! & n8n 배포 완료
 ```

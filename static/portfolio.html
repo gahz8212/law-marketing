@@ -16,7 +16,7 @@
       padding: 40px 20px;
     }
     .container {
-      max-width: 1040px;
+      max-width: 1100px;
       margin: 0 auto;
       background: #ffffff;
       padding: 60px 80px;
@@ -52,6 +52,8 @@
     .markdown-body {
       font-family: inherit;
       color: inherit;
+      font-size: 16px;
+      line-height: 1.7;
     }
     .markdown-body table {
       width: 100%;
@@ -63,13 +65,17 @@
       background-color: #f8fafc;
       color: #1e293b;
       font-weight: 800;
+      font-size: 15px;
+    }
+    .markdown-body td {
+      font-size: 14.5px;
     }
     .markdown-body h1, .markdown-body h2, .markdown-body h3 {
       border-bottom: none;
       color: #0f172a;
     }
     .markdown-body h1 {
-      font-size: 2.2rem;
+      font-size: 2.3rem;
       margin-bottom: 8px;
     }
     .markdown-body h2 {
@@ -77,19 +83,35 @@
       padding-bottom: 12px;
       border-bottom: 2px solid #e2e8f0;
       color: #3730a3;
-      font-size: 1.5rem;
+      font-size: 1.55rem;
     }
     .mermaid {
       text-align: center;
-      margin: 24px 0;
-      background: #ffffff;
-      padding: 20px;
-      border-radius: 16px;
+      margin: 28px 0;
+      background: #f8fafc;
+      padding: 24px 16px;
+      border-radius: 20px;
       border: 1px solid #e2e8f0;
+      overflow-x: auto;
     }
     .mermaid svg {
       max-width: 100% !important;
       height: auto !important;
+    }
+    .mermaid .nodeLabel, .mermaid .node text {
+      font-size: 15px !important;
+      font-family: "Pretendard", sans-serif !important;
+      line-height: 1.5 !important;
+    }
+    .mermaid .edgeLabel {
+      font-size: 13.5px !important;
+      font-weight: 700 !important;
+      font-family: "Pretendard", sans-serif !important;
+    }
+    .mermaid .actor, .mermaid .messageText {
+      font-size: 15px !important;
+      font-weight: 600 !important;
+      font-family: "Pretendard", sans-serif !important;
     }
     @media print {
       body {
@@ -175,22 +197,22 @@
 
 ```mermaid
 graph LR
-    classDef input fill:#F8FAFC,stroke:#64748B,stroke-width:2px,color:#0F172A,font-weight:bold;
-    classDef ai fill:#EFF6FF,stroke:#3B82F6,stroke-width:2px,color:#1E3A8A,font-weight:bold;
-    classDef ui fill:#FAF5FF,stroke:#A855F7,stroke-width:2px,color:#581C87,font-weight:bold;
-    classDef deploy fill:#ECFDF5,stroke:#10B981,stroke-width:2px,color:#064E3B,font-weight:bold;
+    classDef input fill:#F8FAFC,stroke:#64748B,stroke-width:2.5px,color:#0F172A,font-size:16px;
+    classDef ai fill:#EFF6FF,stroke:#3B82F6,stroke-width:2.5px,color:#1E3A8A,font-size:16px;
+    classDef ui fill:#FAF5FF,stroke:#A855F7,stroke-width:2.5px,color:#581C87,font-size:16px;
+    classDef deploy fill:#ECFDF5,stroke:#10B981,stroke-width:2.5px,color:#064E3B,font-size:16px;
 
-    A["📥 1. 판결문 인제스천<br/>━━━━━━━━━━━━━<br/>• 판결문 PDF / 사진 OCR<br/>• 사내 20대 판례 데이터"]:::input
+    A["<b style='font-size:18px;'>📥 1. 판결문 인제스천</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• 판결문 PDF / 사진 OCR<br/>• 사내 20대 판례 데이터</span>"]:::input
     
-    B["🧠 2. AI 멀티모달 가공<br/>━━━━━━━━━━━━━<br/>• Gemini 3.5 : 2,000자 블로그<br/>• Edge-TTS : 30초 성우 음성<br/>• 무상표 뉴스 인포그래픽"]:::ai
+    B["<b style='font-size:18px;'>🧠 2. AI 멀티모달 가공</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• Gemini 3.5 : 2,000자 블로그<br/>• Edge-TTS : 30초 성우 음성<br/>• 무상표 뉴스 인포그래픽</span>"]:::ai
     
-    C["🖥️ 3. 마케터 스튜디오<br/>━━━━━━━━━━━━━<br/>• 실시간 원고 에디터<br/>• 로펌 화이트라벨링<br/>• 8단계 인터랙티브 튜토리얼"]:::ui
+    C["<b style='font-size:18px;'>🖥️ 3. 마케터 스튜디오</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• 실시간 원고 에디터<br/>• 로펌 화이트라벨링<br/>• 8단계 인터랙티브 가이드</span>"]:::ui
     
-    D["🚀 4. 멀티채널 자동 배포<br/>━━━━━━━━━━━━━<br/>• Slack : 실시간 승인 핑<br/>• Notion : 콘텐츠 캘린더<br/>• n8n : 블로그 예약 발행"]:::deploy
+    D["<b style='font-size:18px;'>🚀 4. 멀티채널 자동 배포</b><br/>━━━━━━━━━━━━━<br/><span style='font-size:15px;'>• Slack : 실시간 승인 알림<br/>• Notion : 콘텐츠 캘린더<br/>• n8n : 블로그 예약 발행</span>"]:::deploy
 
-    A ==>|텍스트 추출| B
-    B ==>|5-in-1 에셋 번들| C
-    C ==>|원클릭 발행 트리거| D
+    A ==>|<b style='font-size:14px;'>텍스트 추출</b>| B
+    B ==>|<b style='font-size:14px;'>5-in-1 에셋 번들</b>| C
+    C ==>|<b style='font-size:14px;'>원클릭 배포</b>| D
 ```
 
 ### (2) 데이터 처리 시퀀스 (Data Flow Sequence)
@@ -208,7 +230,7 @@ sequenceDiagram
     S->>B: 2. 에셋 생성 요청 (REST API)
     B->>AI: 3. 비식별화 요약 & 음성 합성
     AI-->>B: 4. 원고·카드뉴스·MP3 번들 반환
-    B-->>S: 5. 3초 내 실시간 화면 렌더링
+    B-->>S: 5. 0.07초 내 실시간 화면 렌더링
     M->>S: 6. 원고 검수 후 [자동 발행 실행]
     S->>D: 7. 슬랙 단톡방 알림 띵동! & n8n 배포 완료
 ```
@@ -342,10 +364,17 @@ sequenceDiagram
     mermaid.initialize({ 
       startOnLoad: false, 
       theme: "default",
+      themeVariables: {
+        fontSize: "16px",
+        fontFamily: "Pretendard",
+        primaryColor: "#eff6ff",
+        primaryBorderColor: "#3b82f6"
+      },
       flowchart: {
         curve: "basis",
-        nodeSpacing: 50,
-        rankSpacing: 50
+        nodeSpacing: 45,
+        rankSpacing: 45,
+        htmlLabels: true
       }
     });
     
