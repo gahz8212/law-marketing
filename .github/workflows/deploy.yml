@@ -1,0 +1,53 @@
+name: Legal Studio CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            echo "🚀 [Deploy] Starting automated deployment on EC2..."
+            
+            # 1. 최신 소스코드 동기화
+            cd /home/ubuntu/law-marketing
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 2. 백엔드 의존성 업데이트
+            echo "📦 [Backend] Updating Python dependencies..."
+            .venv/bin/pip install -r requirements.txt
+            chmod +x run_api.sh
+
+            # 3. 프론트엔드 의존성 및 빌드
+            echo "⚡ [Frontend] Building Next.js 16..."
+            cd frontend
+            npm install
+            npm run build
+            cd ..
+
+            # 4. Nginx 설정 최신화
+            sudo cp nginx-law.conf /etc/nginx/sites-available/law.memyself.shop
+            sudo ln -sf /etc/nginx/sites-available/law.memyself.shop /etc/nginx/sites-enabled/
+            sudo nginx -t && sudo systemctl reload nginx
+
+            # 5. PM2 프로세스 무중단 재기동
+            echo "🔄 [PM2] Reloading services..."
+            pm2 restart ecosystem.config.js || pm2 restart all
+            pm2 save
+
+            echo "✅ [Deploy] Deployment completed successfully!"
