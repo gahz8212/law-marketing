@@ -36,7 +36,12 @@ export interface ThemeDetailResponse {
   audio?: AudioInfo | null;
 }
 
-export const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL !== undefined
+    ? process.env.NEXT_PUBLIC_API_URL
+    : typeof window !== "undefined"
+    ? ""
+    : "http://127.0.0.1:8000";
 
 export async function fetchThemes(): Promise<ThemeItem[]> {
   const res = await fetch(`${BACKEND_URL}/api/probono/themes`, {
