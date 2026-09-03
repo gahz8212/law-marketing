@@ -27,8 +27,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 2. 정적 음성 파일 서빙 마운트 (/static/audio/...)
-app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+class CachedStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        if response.status_code == 200:
+            response.headers["Cache-Control"] = "public, max-age=86400, stale-while-revalidate=3600"
+        return response
+
+# 2. 고속 캐시 정적 파일 서빙 마운트 (/static/images/..., /static/audio/...)
+app.mount("/static", CachedStaticFiles(directory=str(STATIC_DIR)), name="static")
 
 # 3. 라우터 등록
 app.include_router(probono_router, prefix="/api/probono", tags=["Pro Bono AX"])

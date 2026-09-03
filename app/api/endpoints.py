@@ -22,15 +22,26 @@ from app.schemas.probono import (
 )
 import copy
 import time
+import os
+import json
 from datetime import datetime
 
 router = APIRouter()
 
-# 사내 5대 핵심 승소 판례 고속 캐시 (0.005초 초고속 로딩)
+# 사내 20대 핵심 승소 판례 고속 캐시 (디스크 영구 캐시 로드 -> 0.005초 초고속 렌더링)
 THEME_DETAIL_CACHE: Dict[str, Any] = {}
+CACHE_FILE_PATH = os.path.join("static", "data", "prebuilt_themes_cache.json")
+if os.path.exists(CACHE_FILE_PATH):
+    try:
+        with open(CACHE_FILE_PATH, "r", encoding="utf-8") as f:
+            raw_cache = json.load(f)
+            for k, v in raw_cache.items():
+                THEME_DETAIL_CACHE[k] = ThemeDetailResponse(**v)
+        print(f"🚀 [SpeedBoost] Successfully preloaded {len(THEME_DETAIL_CACHE)} curated cases into in-memory cache!")
+    except Exception as ce:
+        print(f"⚠️ [SpeedBoost] Failed to load prebuilt cache: {ce}")
 
 # 사내 승소 판례 데이터베이스 (최신순 영구 누적 저장소)
-# 기본 5대 승소 판례를 초기값으로 로드
 CASE_STORE: List[Dict[str, Any]] = copy.deepcopy(CURATED_THEMES)
 
 # ==============================================================================

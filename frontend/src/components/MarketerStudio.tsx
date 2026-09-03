@@ -47,6 +47,7 @@ export default function MarketerStudio() {
     themes,
     selectedThemeId,
     selectTheme,
+    prefetchTheme,
     themeDetail,
     publishToN8N,
     publishStatus,
@@ -337,6 +338,7 @@ export default function MarketerStudio() {
                     type="button"
                     disabled={isLoading && isSelected}
                     onClick={() => selectTheme(theme.id)}
+                    onMouseEnter={() => prefetchTheme(theme.id)}
                     className={`flex flex-col justify-between p-3.5 2xl:p-4 rounded-2xl border text-left transition-all min-w-[220px] 2xl:min-w-[245px] max-w-[250px] min-h-[100px] 2xl:min-h-[110px] flex-shrink-0 group ${
                       isSelected
                         ? "border-purple-600 bg-purple-50/95 shadow-[4px_4px_0px_0px_#9333ea] ring-1 ring-purple-600/30 -translate-x-0.5 -translate-y-0.5"

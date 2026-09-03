@@ -55,6 +55,7 @@ interface ProBonoStore {
 
   loadInitialData: () => Promise<void>;
   selectTheme: (themeId: string, refresh?: boolean) => Promise<void>;
+  prefetchTheme: (themeId: string) => Promise<void>;
   changeVoiceAction: (voiceType: string) => Promise<void>;
   setLang: (lang: string) => Promise<void>;
   publishToN8N: () => Promise<void>;
@@ -203,6 +204,17 @@ export const useProBonoStore = create<ProBonoStore>()(
             isLoading: false,
           });
         }
+      },
+
+      prefetchTheme: async (themeId: string) => {
+        const { themeCache, selectedLang } = get();
+        if (themeCache[themeId]) return;
+        try {
+          const detail = await fetchThemeDetail(themeId, selectedLang, false);
+          set((state) => ({
+            themeCache: { ...state.themeCache, [themeId]: detail },
+          }));
+        } catch {}
       },
 
       changeVoiceAction: async (voiceType: string) => {
