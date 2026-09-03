@@ -1,0 +1,67 @@
+services:
+  # 1. 법무법인 무제 프로보노 AX API 서비스
+  fastapi-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mooje-fastapi
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - ./static:/app/static
+    depends_on:
+      - db
+    restart: unless-stopped
+    networks:
+      - mooje-net
+
+  # 2. n8n 워크플로우 자동화 엔진
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: mooje-n8n
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=http://localhost:5678/
+      - GENERIC_TIMEZONE=Asia/Seoul
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - fastapi-app
+    restart: unless-stopped
+    networks:
+      - mooje-net
+
+  # 3. 로컬 DB (규정 준수: 로컬 호스트 포트 3307 바인딩)
+  db:
+    image: mysql:8.0
+    container_name: mooje-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: mooje_root_password
+      MYSQL_DATABASE: mooje_probono
+      MYSQL_USER: mooje_user
+      MYSQL_PASSWORD: mooje_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - mooje-net
+
+volumes:
+  n8n_data:
+    name: mooje_n8n_data
+  mysql_data:
+    name: mooje_mysql_data
+
+networks:
+  mooje-net:
+    name: mooje-network
+    driver: bridge

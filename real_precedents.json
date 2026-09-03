@@ -1,0 +1,162 @@
+{
+  "wage": {
+    "seq": "618511",
+    "case_no": "2025다214123",
+    "court_name": "대법원",
+    "judgment_date": "2026.03.12",
+    "case_name": "임금[재직 중 중간정산 퇴직금에 구 근로기준법 제37조 제1항에 따른 연 20%의 지연이율을 적용할 수 있는지가 문제 된 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=618511"
+  },
+  "accident": {
+    "seq": "618535",
+    "case_no": "2024두39189",
+    "court_name": "대법원",
+    "judgment_date": "2026.03.12",
+    "case_name": "부당이득징수결정취소[산업재해보상보험법상 미지급 장해급여의 수급권자인 선순위 유족이 사망한 경우, 그 수급권이 위 유족의 민법상 상속인에게 상속되는지가 문제 된 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=618535"
+  },
+  "dismissal": {
+    "seq": "616245",
+    "case_no": "2023두54914",
+    "court_name": "대법원",
+    "judgment_date": "2026.01.29",
+    "case_name": "부당해고구제재심판정취소",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=616245"
+  },
+  "lease": {
+    "seq": "622247",
+    "case_no": "2026다200365",
+    "court_name": "대법원",
+    "judgment_date": "2026.05.29",
+    "case_name": "기타(금전)[원고가 전세보증금반환보증계약에 기하여 주택도시보증공사를 상대로 보증채무 이행금에 대한 지연손해금의 지급을 구하는 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=622247"
+  },
+  "traffic": {
+    "seq": "621987",
+    "case_no": "2023다228244",
+    "court_name": "대법원",
+    "judgment_date": "2026.05.14",
+    "case_name": "손해배상(기)[쌍방과실로 교통사고 발생 시 자기차량손해보험 피보험자가 차량수리비 중 자기부담금 상당액을 보상받지 못하였는데, 상대차량의 보험자를 상대로 자기부담금 상당의 손해배상을 청구한 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=621987"
+  },
+  "freight_driver": {
+    "seq": "622201",
+    "case_no": "대법원2026두30655",
+    "court_name": "대법원",
+    "judgment_date": "2026.06.25",
+    "case_name": "(심리불속행) 지입차주 고용 여부에 따라 주류면허 취소가 적법한지 여부",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=622201"
+  },
+  "commercial_lease": {
+    "seq": "228551",
+    "case_no": "2022다202498",
+    "court_name": "대법원",
+    "judgment_date": "2022.08.11",
+    "case_name": "손해배상(기)[임대인의 철거·재건축계획의 고지행위에 관하여 종전 임차인이 권리금 회수방해를 원인으로 한 손해배상을 청구한 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=228551"
+  },
+  "construction_fee": {
+    "seq": "622173",
+    "case_no": "서울행정법원-2024-구합-80873",
+    "court_name": "대법원",
+    "judgment_date": "2026.06.26",
+    "case_name": "판결에 의해 확정된 공사대금 수입금액 귀속 시기 판단",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=622173"
+  },
+  "phishing_account": {
+    "seq": "608529",
+    "case_no": "2024다236754",
+    "court_name": "대법원",
+    "judgment_date": "2025.08.14",
+    "case_name": "채무부존재확인[저축은행의 비대면 대출계약에서 명의자가 보이스피싱으로 명의가 도용되어 체결된 계약으로서 무효라고 주장한 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=608529"
+  },
+  "franchise_fee": {
+    "seq": "618591",
+    "case_no": "인천지방법원-2025-구합-50540",
+    "court_name": "대법원",
+    "judgment_date": "2025.09.05",
+    "case_name": "현금영수증 가맹점에 가입하지 않은 사업장에 대해 중소기업 특별세액감면을 배제한 과세처분은 적법함",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=618591"
+  },
+  "apartment_defect": {
+    "seq": "616543",
+    "case_no": "2025다218322",
+    "court_name": "대법원",
+    "judgment_date": "2026.01.29",
+    "case_name": "하자보수보증금등",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=616543"
+  },
+  "trade_secret": {
+    "seq": "620417",
+    "case_no": "2025도21522",
+    "court_name": "대법원",
+    "judgment_date": "2026.04.30",
+    "case_name": "산업기술의유출방지및보호에관한법률위반·부정경쟁방지및영업비밀보호에관한법률위반(영업비밀국외누설등)·업무상배임·부정경쟁방지및영업비밀보호에관한법률위반[영업비밀 보유자로부터 영업비밀을 삭제하거나 반환할 것을 요구받고도 이를 계속 보유한 행위가 문제 된 사안]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=620417"
+  },
+  "defamation_online": {
+    "seq": "612979",
+    "case_no": "2022도10369",
+    "court_name": "대법원",
+    "judgment_date": "2025.10.30",
+    "case_name": "명예훼손·옥외광고물등의관리와옥외광고산업진흥에관한법률위반",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=612979"
+  },
+  "medical_malpractice": {
+    "seq": "238643",
+    "case_no": "2021도1833",
+    "court_name": "대법원",
+    "judgment_date": "2023.08.31",
+    "case_name": "업무상과실치사·의료법위반[의사인 피고인이 간호사에게 환자 감시 업무를 맡기고 수술실을 이탈한 후 피해자인 환자에게 심정지가 발생하여 사망한 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=238643"
+  },
+  "school_violence": {
+    "seq": "609519",
+    "case_no": "2025무565",
+    "court_name": "대법원",
+    "judgment_date": "2025.09.09",
+    "case_name": "집행정지[학교폭력 관련 처분에 대한 집행정지결정이 있는 경우, 그 즉시 학교생활기록부에 기재된 학교폭력 관련 조치사항을 삭제해야 하는지 문제된 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=609519"
+  },
+  "flooded_car": {
+    "seq": "326512",
+    "case_no": "인천지방법원-2019-구합-52779",
+    "court_name": "대법원",
+    "judgment_date": "2020.08.20",
+    "case_name": "중고자동차 매매업의 실사업자로 보아 과세한 당초처분은 적법함",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=326512"
+  },
+  "inheritance_reserve": {
+    "seq": "622261",
+    "case_no": "2024다208261",
+    "court_name": "대법원",
+    "judgment_date": "2026.05.29",
+    "case_name": "유류분반환[기여분에 관한 민법 제1008조의2를 유류분에 준용하지 않은 구 민법 제1118조에 대하여, 헌법재판소가 헌법불합치를 선언하면서 구 민법 제1118조가 일정 시한 내 입법자가 개정할 때까지 계속 적용된다고 한 결정이 병행사건에 미치는 효력 등이 문제 된 사건]",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=622261"
+  },
+  "loan_return": {
+    "seq": "622523",
+    "case_no": "서울동부지방법원-2025-나-20644",
+    "court_name": "대법원",
+    "judgment_date": "2026.07.08",
+    "case_name": "피고의 대여금 채무는 상사채무로서 5년의 소멸시효 기간이 적용됨",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=622523"
+  },
+  "drunk_driving": {
+    "seq": "623069",
+    "case_no": "2025도11170",
+    "court_name": "대법원",
+    "judgment_date": "2026.06.18",
+    "case_name": "범인도피방조·도로교통법위반(음주운전)",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=623069"
+  },
+  "water_leak": {
+    "seq": "228551",
+    "case_no": "2022다202498",
+    "court_name": "대법원",
+    "judgment_date": "2022.08.11",
+    "case_name": "손해배상(기)",
+    "url": "https://www.law.go.kr/LSW/precInfoP.do?precSeq=228551"
+  }
+}

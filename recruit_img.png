@@ -1,0 +1,22 @@
+<br>
+<br>
+<center>
+<h2>
+The request / response that are contrary to the Web firewall security policies have been blocked.
+</h2>
+<table>
+<tr>
+<td>Detect time</td>
+<td>2026-09-03 13:47:16</td>
+</tr>
+<tr>
+<td>Detect client IP</td>
+<td>121.125.96.153</td>
+</tr>
+<tr>
+<td>Detect URL</td>
+<td>http://pds.saramin.co.kr/recruit/recruit/202608/03/539b27_8554-c970c8_recruit.png</td>
+</tr>
+</table>
+</center>
+<br>

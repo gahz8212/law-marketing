@@ -1,0 +1,152 @@
+{
+  "name": "법무법인 무제 프로보노 AX 자동화 파이프라인",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "probono-trigger",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "웹훅 트리거 (Webhook Trigger)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        200,
+        300
+      ],
+      "id": "webhook-trigger-node"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "name": "정기 스케줄러 (매주 월요일 09:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        200,
+        480
+      ],
+      "id": "schedule-trigger-node"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://fastapi-app:8000/api/probono/summarize",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $json.body?.query || $json.query || '손해배상' }}"
+            },
+            {
+              "name": "lang",
+              "value": "={{ $json.body?.lang || $json.lang || 'ko' }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "name": "FastAPI 프로보노 요약 호출 (HTTP Request)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        380
+      ],
+      "id": "fastapi-request-node"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 수신된 법률 리포트 및 음성 파일 메타데이터 포맷팅\nconst data = $input.first().json;\n\nconst bullets = (data.summary_bullets || []).map((b, i) => `${i + 1}. ${b}`).join('\\n');\nconst audioUrl = data.audio?.audio_url ? `http://localhost:8000${data.audio.audio_url}` : '음성 미제공';\n\nconst formattedMessage = `📢 [법무법인 무제 프로보노 센터 판례 알림]\\n\\n` +\n  `🏛 사건명: ${data.precedent.case_name}\\n` +\n  `⚖️ 사건번호: ${data.precedent.case_no} (${data.precedent.court_name})\\n` +\n  `🔗 공식 대법원 판례 링크: ${data.precedent.official_url}\\n` +\n  `🌐 언어: ${data.lang.toUpperCase()}\\n\\n` +\n  `📌 핵심 3줄 요약:\\n${bullets}\\n\\n` +\n  `🎧 음성 리포트 듣기: ${audioUrl}\\n\\n` +\n  `----------------------------------------\\n` +\n  `상담문의: 법무법인 무제 프로보노(공익지원) 센터`;\n\nreturn [{\n  json: {\n    ...data,\n    formatted_message: formattedMessage,\n    channel_payload: {\n      text: formattedMessage,\n      audio_url: audioUrl,\n      official_url: data.precedent.official_url\n    }\n  }\n}];"
+      },
+      "name": "메시지 포맷팅 (Code Node)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        380
+      ],
+      "id": "code-formatter-node"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"프로보노 파이프라인 자동화 전송 완료\",\n  \"data\": $json\n}",
+        "options": {}
+      },
+      "name": "웹훅 응답 반환 (Respond to Webhook)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        380
+      ],
+      "id": "respond-webhook-node"
+    }
+  ],
+  "connections": {
+    "웹훅 트리거 (Webhook Trigger)": {
+      "main": [
+        [
+          {
+            "node": "FastAPI 프로보노 요약 호출 (HTTP Request)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "정기 스케줄러 (매주 월요일 09:00)": {
+      "main": [
+        [
+          {
+            "node": "FastAPI 프로보노 요약 호출 (HTTP Request)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FastAPI 프로보노 요약 호출 (HTTP Request)": {
+      "main": [
+        [
+          {
+            "node": "메시지 포맷팅 (Code Node)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "메시지 포맷팅 (Code Node)": {
+      "main": [
+        [
+          {
+            "node": "웹훅 응답 반환 (Respond to Webhook)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
