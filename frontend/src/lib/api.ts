@@ -57,7 +57,8 @@ export async function fetchThemeDetail(
   lang: string = "ko",
   refresh: boolean = false
 ): Promise<ThemeDetailResponse> {
-  const url = new URL(`${BACKEND_URL}/api/probono/themes/${themeId}`);
+  const base = BACKEND_URL || (typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:8000");
+  const url = new URL(`${base}/api/probono/themes/${themeId}`);
   url.searchParams.set("lang", lang);
   if (refresh) {
     url.searchParams.set("refresh", "true");
@@ -148,7 +149,8 @@ export interface PrecedentSearchItem {
 
 export async function searchPrecedents(query: string): Promise<PrecedentSearchItem[]> {
   if (!query.trim()) return [];
-  const url = new URL(`${BACKEND_URL}/api/probono/search`);
+  const base = BACKEND_URL || (typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:8000");
+  const url = new URL(`${base}/api/probono/search`);
   url.searchParams.set("query", query);
   url.searchParams.set("limit", "6");
   const res = await fetch(url.toString());
@@ -162,7 +164,8 @@ export async function searchCases(
   sort: "accuracy" | "latest" = "accuracy",
   court?: string
 ): Promise<ThemeItem[]> {
-  const url = new URL(`${BACKEND_URL}/api/probono/cases/search`);
+  const base = BACKEND_URL || (typeof window !== "undefined" ? window.location.origin : "http://127.0.0.1:8000");
+  const url = new URL(`${base}/api/probono/cases/search`);
   if (query.trim()) url.searchParams.set("query", query.trim());
   url.searchParams.set("sort", sort);
   if (court) url.searchParams.set("court", court);
