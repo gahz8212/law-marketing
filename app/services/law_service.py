@@ -118,6 +118,48 @@ class LawService:
         return None
 
     @classmethod
+    def get_precedent_by_case_no(cls, case_no: str) -> Optional[Dict[str, Any]]:
+        """사건번호(예: 2021도1833, 2024다208261)로 국가법령정보센터 판례를 직접 검색하여 상세 정보를 반환합니다."""
+        if not LAW_API_KEY:
+            return None
+
+        clean_no = case_no.strip()
+        search_params = {
+            "OC": LAW_API_KEY,
+            "target": "prec",
+            "type": "XML",
+            "query": clean_no,
+        }
+
+        try:
+            resp = requests.get(cls.SEARCH_URL, params=search_params, headers=cls.HEADERS, timeout=8)
+            resp.raise_for_status()
+            search_dict = xmltodict.parse(resp.text)
+            prec_search = search_dict.get("PrecSearch", {})
+            prec_items = prec_search.get("prec", [])
+            if isinstance(prec_items, dict):
+                prec_items = [prec_items]
+
+            for item in prec_items:
+                prec_id = item.get("판례일련번호")
+                if not prec_id:
+                    continue
+                detail = cls.get_precedent_by_id(str(prec_id))
+                if detail:
+                    c_no = detail.get("사건번호", "").replace(" ", "")
+                    q_no = clean_no.replace(" ", "")
+                    if q_no in c_no or c_no in q_no:
+                        return detail
+            if prec_items:
+                first_id = prec_items[0].get("판례일련번호")
+                if first_id:
+                    return cls.get_precedent_by_id(str(first_id))
+        except Exception as e:
+            print(f"[LawService] get_precedent_by_case_no error: {e}")
+            return None
+        return None
+
+    @classmethod
     def is_irrelevant_noise(cls, user_query: str, case_name: str, snippet: str) -> bool:
         """사용자가 직접 묻지 않은 흉악 범죄/마약 사건 등 오매칭 판례 필터링"""
         combined = (case_name + " " + snippet).lower()

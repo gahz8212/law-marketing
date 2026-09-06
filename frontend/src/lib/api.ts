@@ -84,7 +84,7 @@ export async function submitCustomCase(payload: {
   case_title?: string;
   case_no?: string;
   court_name?: string;
-  raw_text: string;
+  raw_text?: string;
   lang?: string;
 }): Promise<ThemeDetailResponse> {
   const res = await fetch(`${BACKEND_URL}/api/probono/custom-case`, {
@@ -92,7 +92,27 @@ export async function submitCustomCase(payload: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  if (!res.ok) throw new Error("판결문 분석 및 에셋 생성 실패");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "판결문 분석 및 에셋 생성 실패");
+  }
+  return res.json();
+}
+
+export async function deleteThemeApi(themeId: string): Promise<{
+  success: boolean;
+  deleted_id: string;
+  deleted_title: string;
+  next_theme_id: string | null;
+  remaining_count: number;
+}> {
+  const res = await fetch(`${BACKEND_URL}/api/probono/themes/${themeId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "판례 삭제에 실패했습니다.");
+  }
   return res.json();
 }
 

@@ -29,6 +29,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings2,
+  Trash2,
 } from "lucide-react";
 import { getAudioStreamUrl, searchPrecedents, searchCases, fetchThemes, PrecedentSearchItem, ThemeItem, BACKEND_URL } from "@/lib/api";
 
@@ -60,11 +61,20 @@ export default function MarketerStudio() {
     isVoiceSynthesizing,
     changeVoiceAction,
     setThemes,
+    deleteThemeAction,
     openChannelConfig,
     slackWebhookUrl,
     notionDatabaseId,
     blogWebhookUrl,
   } = useProBonoStore();
+
+  const handleDeleteTheme = async (themeId: string, title?: string) => {
+    const displayTitle = title || "해당 판례";
+    if (!window.confirm(`'${displayTitle}' 판례를 사내 DB에서 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) {
+      return;
+    }
+    await deleteThemeAction(themeId);
+  };
 
   const handlePublishClick = () => {
     const hasConfig =
@@ -253,15 +263,26 @@ export default function MarketerStudio() {
 
   const handleCustomSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customRawText.trim()) return;
+    const hasText = customRawText.trim().length > 0;
+    const hasCaseNo = customCaseNo.trim().length > 0;
+    if (!hasText && !hasCaseNo) return;
 
-    await analyzeCustomCase({
-      case_title: customTitle.trim() || undefined,
-      case_no: customCaseNo.trim() || undefined,
-      court_name: customCourt.trim() || "법원",
-      raw_text: customRawText.trim(),
-    });
-    setActivePanel("none");
+    try {
+      await analyzeCustomCase({
+        case_title: customTitle.trim() || undefined,
+        case_no: customCaseNo.trim() || undefined,
+        court_name: customCourt.trim() || "법원",
+        raw_text: customRawText.trim() || undefined,
+      });
+      // 저장 성공 시 폼 초기화 및 입력창 닫기
+      setCustomTitle("");
+      setCustomCaseNo("");
+      setCustomCourt("서울중앙지방법원");
+      setCustomRawText("");
+      setActivePanel("none");
+    } catch {
+      // 오류 발생 시 store의 errorMessage로 표시됨
+    }
   };
 
   const handleDrop = async (e: React.DragEvent) => {
@@ -270,6 +291,7 @@ export default function MarketerStudio() {
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       await uploadCaseFileAction(file, fileCaseTitle || file.name);
+      setFileCaseTitle("");
       setActivePanel("none");
     }
   };
@@ -278,6 +300,8 @@ export default function MarketerStudio() {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
       await uploadCaseFileAction(file, fileCaseTitle || file.name);
+      setFileCaseTitle("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
       setActivePanel("none");
     }
   };
@@ -349,11 +373,24 @@ export default function MarketerStudio() {
                       <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] 2xl:text-xs font-bold">
                         {theme.court_name || "법원"}
                       </span>
-                      {idx === 0 && !activeSearchFilter && (
-                        <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] 2xl:text-xs font-black">
-                          최신
-                        </span>
-                      )}
+                      <div className="flex items-center space-x-1.5">
+                        {idx === 0 && !activeSearchFilter && (
+                          <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-[10px] 2xl:text-xs font-black">
+                            최신
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTheme(theme.id, theme.title);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-rose-100 text-rose-500 rounded-lg transition-all"
+                          title="이 판례 삭제"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="mt-2">
@@ -509,7 +546,7 @@ export default function MarketerStudio() {
                     placeholder={
                       subMode === "file"
                         ? "문서 첫 장에서 자동 추출됩니다"
-                        : "예: 2025다214123"
+                        : "예: 2024다208261 (사건번호만 입력 시 자동 조회)"
                     }
                     value={subMode === "text" ? customCaseNo : ""}
                     onChange={(e) => {
@@ -562,7 +599,7 @@ export default function MarketerStudio() {
                 <div className="relative">
                   <textarea
                     rows={8}
-                    placeholder="판결문 주문/이유 전문 또는 변호사의 거친 카톡 메모/소장 내용을 자유롭게 붙여넣으세요. Gemini가 개인정보를 비식별화하고 사내 DB에 등록합니다..."
+                    placeholder="판결문 주문/이유 전문 또는 변호사의 거친 카톡 메모/소장 내용을 자유롭게 붙여넣으세요. (사건번호를 위에 적으셨다면 본문은 비워두셔도 공공 DB에서 자동 조회됩니다)..."
                     value={customRawText}
                     onChange={(e) => setCustomRawText(e.target.value)}
                     className="w-full p-4 2xl:p-5 bg-white border border-gray-300 rounded-2xl text-xs 2xl:text-sm font-sans focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-inner"
@@ -587,22 +624,32 @@ export default function MarketerStudio() {
 
                 <div className="flex items-center justify-between pt-1">
                   <span className="text-[11px] 2xl:text-xs text-gray-500">
-                    💡 저장 즉시 개인정보 마스킹 ➔ 사내 자산 DB 저장 ➔ 마케팅 에셋이 자동 생성됩니다.
+                    💡 사건번호만 입력 시 판례가 자동 조회되며, 저장 즉시 사내 DB 반영 및 입력창이 초기화됩니다.
                   </span>
                   <button
                     type="submit"
-                    disabled={isLoading || !customRawText.trim()}
+                    disabled={isLoading || (!customRawText.trim() && !customCaseNo.trim())}
                     className="px-6 py-3 bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white font-extrabold text-xs 2xl:text-sm rounded-2xl shadow-md transition-all flex items-center space-x-2 active:scale-98"
                   >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>사내 DB 저장 및 마케팅 에셋 생성 중...</span>
+                        <span>
+                          {customRawText.trim()
+                            ? "사내 DB 저장 및 마케팅 에셋 생성 중..."
+                            : "사건번호로 판결문 자동 조회 및 생성 중..."}
+                        </span>
                       </>
                     ) : (
                       <>
                         <Save className="w-4 h-4" />
-                        <span>사내 DB에 저장 및 마케팅 에셋 생성 (가장 왼쪽 1등 반영)</span>
+                        <span>
+                          {customRawText.trim()
+                            ? "사내 DB에 저장 및 마케팅 에셋 생성 (가장 왼쪽 1등 반영)"
+                            : customCaseNo.trim()
+                            ? `사건번호 [${customCaseNo.trim()}]로 판결문 자동 조회 & 저장`
+                            : "판결문 메모 또는 사건번호 입력 필요"}
+                        </span>
                       </>
                     )}
                   </button>
@@ -885,6 +932,16 @@ export default function MarketerStudio() {
                       <span>원고 전체 복사</span>
                     </>
                   )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDeleteTheme(themeDetail.theme_id, themeDetail.theme_info.title)}
+                  className="flex items-center space-x-1.5 text-xs 2xl:text-sm font-bold px-3.5 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 shadow-2xs transition-all active:scale-98"
+                  title="이 판례를 사내 DB에서 삭제합니다"
+                >
+                  <Trash2 className="w-4 h-4 text-rose-600" />
+                  <span>판례 삭제</span>
                 </button>
               </div>
             </div>

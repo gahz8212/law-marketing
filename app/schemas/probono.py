@@ -36,7 +36,7 @@ class CustomCaseRequest(BaseModel):
     case_title: Optional[str] = Field(None, description="사건명 (미입력 시 AI가 자동 추출)")
     case_no: Optional[str] = Field(None, description="사건번호")
     court_name: Optional[str] = Field("대법원", description="법원명")
-    raw_text: str = Field(..., min_length=10, description="변호사가 전달한 판결문 본문 텍스트")
+    raw_text: Optional[str] = Field(None, description="변호사가 전달한 판결문 본문 텍스트 (사건번호 입력 시 자동 조회 가능)")
     lang: str = Field("ko", description="응답 언어 코드")
 
 class VoiceSynthesisRequest(BaseModel):

@@ -9,6 +9,7 @@ import {
   submitCustomCase,
   uploadCaseFile,
   synthesizeVoice,
+  deleteThemeApi,
   BACKEND_URL,
 } from "./api";
 
@@ -63,13 +64,14 @@ interface ProBonoStore {
     case_title?: string;
     case_no?: string;
     court_name?: string;
-    raw_text: string;
+    raw_text?: string;
   }) => Promise<void>;
   uploadCaseFileAction: (
     file: File,
     caseTitle?: string,
     courtName?: string
   ) => Promise<void>;
+  deleteThemeAction: (themeId: string) => Promise<void>;
   setThemes: (themes: ThemeItem[]) => void;
 
   // 튜토리얼 모달 상태
@@ -321,6 +323,37 @@ export const useProBonoStore = create<ProBonoStore>()(
       },
 
       setThemes: (themes: ThemeItem[]) => set({ themes }),
+
+      deleteThemeAction: async (themeId: string) => {
+        set({ isLoading: true, errorMessage: null });
+        try {
+          const res = await deleteThemeApi(themeId);
+          const state = get();
+          const updatedThemes = state.themes.filter((t) => t.id !== themeId);
+          const updatedCache = { ...state.themeCache };
+          delete updatedCache[themeId];
+
+          const nextId = res.next_theme_id || (updatedThemes.length > 0 ? updatedThemes[0].id : "");
+
+          set({
+            themes: updatedThemes,
+            themeCache: updatedCache,
+            selectedThemeId: nextId,
+            isLoading: false,
+          });
+
+          if (nextId) {
+            await get().selectTheme(nextId);
+          } else {
+            set({ themeDetail: null });
+          }
+        } catch (error: any) {
+          set({
+            errorMessage: error.message || "판례 삭제 중 오류가 발생했습니다.",
+            isLoading: false,
+          });
+        }
+      },
 
       publishToN8N: async () => {
         const detail = get().themeDetail;

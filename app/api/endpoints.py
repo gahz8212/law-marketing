@@ -2,7 +2,8 @@ from typing import Optional, Dict, Any, List
 import re
 from fastapi import APIRouter, Query, HTTPException, status, Body, UploadFile, File, Form
 import requests
-from app.core.config import SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE
+from google import genai
+from app.core.config import SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, LLM_API_KEY, DEFAULT_GEMINI_MODEL
 from app.core.curated_cases import CURATED_THEMES
 from app.services.law_service import LawService
 from app.services.anonymizer import Anonymizer
@@ -279,27 +280,106 @@ def get_theme_detail(
 @router.post(
     "/custom-case",
     response_model=ThemeDetailResponse,
-    summary="변호사 전달 승소 판결문 직접 입력 ➔ 마케팅 에셋 생성",
-    description="변호사가 전달한 판결문 원문 텍스트를 입력받아, 개인정보 비식별화 후 블로그 제목, 카드뉴스, 완성형 원고, TTS 음성을 일괄 생성합니다."
+    summary="변호사 전달 승소 판결문 직접 입력 또는 사건번호 자동 조회 ➔ 마케팅 에셋 생성",
+    description="사건번호만 입력 시 판례를 자동 조회하여 등록하거나, 직접 입력한 판결문 원문/메모를 비식별화 후 마케팅 에셋을 생성합니다."
 )
 def process_custom_case(req: CustomCaseRequest):
     normalized_lang = req.lang.lower().strip()
     if normalized_lang not in SUPPORTED_LANGUAGES:
         normalized_lang = "ko"
 
-    # 1. 개인정보 자동 비식별화 (Core Principle 2)
-    clean_text = Anonymizer.anonymize_text(req.raw_text)
+    input_text = (req.raw_text or "").strip()
+    input_case_no = (req.case_no or "").strip()
 
-    # 2. 사건명 파악
-    case_name = req.case_title or "승소 판결문 (변호사 전달 사건)"
-    case_no = req.case_no or "사내 승소 판례"
+    if not input_text and not input_case_no:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="사건번호 또는 판결문/메모 본문 중 하나는 반드시 입력해야 합니다."
+        )
+
+    case_name = req.case_title
+    case_no = input_case_no
     court = req.court_name or "법원"
+    judgment_date = datetime.now().strftime("%Y.%m.%d")
+    clean_text = ""
+
+    # 만약 본문이 없고 사건번호만 입력된 경우: 자동 판결 조회 실행
+    if not input_text and input_case_no:
+        # 1) 사내 CASE_STORE에 이미 등록된 사건인지 검색
+        matched_in_store = next(
+            (c for c in CASE_STORE if input_case_no.replace(" ", "") in c.get("case_no", "").replace(" ", "")),
+            None
+        )
+        if matched_in_store:
+            case_name = case_name or matched_in_store.get("case_name") or matched_in_store.get("title")
+            court = matched_in_store.get("court_name", court)
+            judgment_date = matched_in_store.get("judgment_date", judgment_date)
+            clean_text = f"사실관계: {matched_in_store.get('fact_summary', '')}\n판결요지: {matched_in_store.get('court_holding', '')}"
+
+        # 2) 국가법령정보센터 OpenAPI 조회 시도
+        if not clean_text:
+            try:
+                prec_result = LawService.get_precedent_by_case_no(input_case_no)
+                if prec_result:
+                    case_name = case_name or prec_result.get("사건명")
+                    court = prec_result.get("법원명") or court
+                    case_no = prec_result.get("사건번호") or case_no
+                    judgment_date = prec_result.get("선고일자") or judgment_date
+                    clean_text = f"판시사항: {prec_result.get('판시사항', '')}\n판결요지: {prec_result.get('판결요지', '')}"
+            except Exception as e:
+                print(f"[LawService] 사건번호 조회 실패: {e}")
+
+        # 3) 공공 API 미응답 또는 미등재 시, Gemini 법률 지식 기반 스마트 자동 복원 시도
+        if not clean_text and LLM_API_KEY:
+            try:
+                client = genai.Client(api_key=LLM_API_KEY)
+                prompt = (
+                    f"대한민국 법원 판례 사건번호 '{input_case_no}'에 대하여 판결 정보와 사실관계를 상세히 분석해 줘.\n"
+                    "반드시 다음 형식으로 작성해 줘:\n"
+                    "사건명: (사건명)\n"
+                    "법원명: (법원명)\n"
+                    "선고일자: (선고일자)\n"
+                    "사실관계: (사건의 발생 배경 및 쟁점)\n"
+                    "판결요지: (법원의 핵심 판단 및 판결 이유)\n"
+                    "만약 완전히 허구이거나 전혀 알 수 없는 사건번호인 경우에만 'NOT_FOUND'라고 답해줘."
+                )
+                resp = client.models.generate_content(
+                    model=DEFAULT_GEMINI_MODEL,
+                    contents=prompt
+                )
+                gemini_text = (resp.text or "").strip()
+                if gemini_text and "NOT_FOUND" not in gemini_text and len(gemini_text) > 30:
+                    clean_text = gemini_text
+                    title_match = re.search(r"사건명\s*[:\s]*([^\n]+)", gemini_text)
+                    if title_match and not case_name:
+                        case_name = title_match.group(1).strip()
+                    court_match = re.search(r"법원명\s*[:\s]*([^\n]+)", gemini_text)
+                    if court_match and (court == "법원" or court == "대법원"):
+                        court = court_match.group(1).strip()
+                    date_match = re.search(r"선고일자\s*[:\s]*([^\n]+)", gemini_text)
+                    if date_match:
+                        judgment_date = date_match.group(1).strip()
+            except Exception as ge:
+                print(f"[Gemini Fallback] 사건번호 복원 실패: {ge}")
+
+        if not clean_text or len(clean_text.strip()) < 10:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"사건번호 '{input_case_no}'에 해당하는 판결문을 공공 DB에서 찾을 수 없습니다. 판결문 파일 업로드나 메모 본문을 직접 입력해주세요."
+            )
+    else:
+        # 본문이 제공된 경우: 개인정보 자동 비식별화
+        clean_text = Anonymizer.anonymize_text(input_text)
+
+    case_name = case_name or "승소 판결문 (변호사 전달 사건)"
+    case_no = case_no or "사내 승소 판례"
+    court = court or "법원"
 
     prec_data = {
         "판례일련번호": f"custom_{case_no}",
         "사건명": case_name,
         "사건번호": case_no,
-        "선고일자": "최신 판결",
+        "선고일자": judgment_date,
         "법원명": court,
         "판결유형": "판결",
         "공식링크": "https://www.law.go.kr",
@@ -374,7 +454,7 @@ def process_custom_case(req: CustomCaseRequest):
         "case_name": case_name,
         "case_no": case_no,
         "court_name": court,
-        "judgment_date": datetime.now().strftime("%Y.%m.%d"),
+        "judgment_date": judgment_date,
         "official_url": "https://www.law.go.kr",
         "image_url": "/static/images/news_wage.jpg",
         "fact_summary": clean_text[:250],
@@ -567,6 +647,37 @@ async def upload_case_file(
     )
     THEME_DETAIL_CACHE[f"{new_case_id}_{normalized_lang}"] = detail_res
     return detail_res
+
+@router.delete(
+    "/themes/{theme_id}",
+    summary="사내 승소 판례 삭제",
+    description="사내 DB(CASE_STORE) 및 캐시에서 특정 판례를 삭제합니다."
+)
+def delete_theme(theme_id: str):
+    global CASE_STORE
+    idx = next((i for i, t in enumerate(CASE_STORE) if t["id"] == theme_id), None)
+    if idx is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"삭제할 판례(ID: '{theme_id}')를 찾을 수 없습니다."
+        )
+
+    deleted_case = CASE_STORE.pop(idx)
+
+    # THEME_DETAIL_CACHE에서 해당 theme 관련 캐시 일괄 제거
+    keys_to_del = [k for k in list(THEME_DETAIL_CACHE.keys()) if k.startswith(f"{theme_id}_")]
+    for k in keys_to_del:
+        THEME_DETAIL_CACHE.pop(k, None)
+
+    next_theme_id = CASE_STORE[0]["id"] if CASE_STORE else None
+
+    return {
+        "success": True,
+        "deleted_id": theme_id,
+        "deleted_title": deleted_case.get("title", ""),
+        "next_theme_id": next_theme_id,
+        "remaining_count": len(CASE_STORE)
+    }
 
 @router.post(
     "/synthesize-voice",
