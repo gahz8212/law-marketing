@@ -25,6 +25,7 @@ import copy
 import time
 import os
 import json
+import urllib.parse
 from datetime import datetime
 
 router = APIRouter()
@@ -172,6 +173,19 @@ def get_theme_detail(
     if not theme:
         theme = CASE_STORE[0]
 
+    # 공식링크가 누락되었거나 메인 도메인(law.go.kr)으로만 된 경우, 사건번호/일련번호 기반 정밀 판결문 직행 링크로 보정
+    if not theme.get("official_url") or theme.get("official_url").strip() in ["https://www.law.go.kr", "http://www.law.go.kr", "https://www.law.go.kr/"]:
+        c_no = theme.get("case_no", "").strip()
+        if c_no and c_no != "사내 승소 판례":
+            try:
+                prec_match = LawService.get_precedent_by_case_no(c_no)
+                if prec_match and prec_match.get("공식링크"):
+                    theme["official_url"] = prec_match["공식링크"]
+            except Exception:
+                pass
+            if not theme.get("official_url") or theme.get("official_url").strip() in ["https://www.law.go.kr", "http://www.law.go.kr", "https://www.law.go.kr/"]:
+                theme["official_url"] = f"https://www.law.go.kr/precSc.do?menuId=7&query={urllib.parse.quote(c_no)}"
+
     # 판례 데이터 구조화
     prec_data = {
         "판례일련번호": f"curated_{theme_id}",
@@ -317,6 +331,8 @@ def process_custom_case(req: CustomCaseRequest):
             clean_text = f"사실관계: {matched_in_store.get('fact_summary', '')}\n판결요지: {matched_in_store.get('court_holding', '')}"
 
         # 2) 국가법령정보센터 OpenAPI 조회 시도
+        prec_result = None
+        official_url = ""
         if not clean_text:
             try:
                 prec_result = LawService.get_precedent_by_case_no(input_case_no)
@@ -325,6 +341,7 @@ def process_custom_case(req: CustomCaseRequest):
                     court = prec_result.get("법원명") or court
                     case_no = prec_result.get("사건번호") or case_no
                     judgment_date = prec_result.get("선고일자") or judgment_date
+                    official_url = prec_result.get("공식링크") or ""
                     clean_text = f"판시사항: {prec_result.get('판시사항', '')}\n판결요지: {prec_result.get('판결요지', '')}"
             except Exception as e:
                 print(f"[LawService] 사건번호 조회 실패: {e}")
@@ -370,10 +387,25 @@ def process_custom_case(req: CustomCaseRequest):
     else:
         # 본문이 제공된 경우: 개인정보 자동 비식별화
         clean_text = Anonymizer.anonymize_text(input_text)
+        official_url = ""
 
     case_name = case_name or "승소 판결문 (변호사 전달 사건)"
     case_no = case_no or "사내 승소 판례"
     court = court or "법원"
+
+    # 공식 판례 열람 직행 링크 생성 (국가법령정보센터 뷰어 우선)
+    if not official_url:
+        if case_no and case_no != "사내 승소 판례":
+            try:
+                matched_prec = LawService.get_precedent_by_case_no(case_no)
+                if matched_prec and matched_prec.get("공식링크"):
+                    official_url = matched_prec["공식링크"]
+            except Exception:
+                pass
+            if not official_url:
+                official_url = f"https://www.law.go.kr/precSc.do?menuId=7&query={urllib.parse.quote(case_no)}"
+        else:
+            official_url = "https://www.law.go.kr"
 
     prec_data = {
         "판례일련번호": f"custom_{case_no}",
@@ -382,7 +414,7 @@ def process_custom_case(req: CustomCaseRequest):
         "선고일자": judgment_date,
         "법원명": court,
         "판결유형": "판결",
-        "공식링크": "https://www.law.go.kr",
+        "공식링크": official_url,
         "판시사항": clean_text[:400],
         "판결요지": clean_text,
     }
@@ -455,7 +487,7 @@ def process_custom_case(req: CustomCaseRequest):
         "case_no": case_no,
         "court_name": court,
         "judgment_date": judgment_date,
-        "official_url": "https://www.law.go.kr",
+        "official_url": official_url,
         "image_url": "/static/images/news_wage.jpg",
         "fact_summary": clean_text[:250],
         "court_holding": llm_result["summary_lines"][1] if len(llm_result["summary_lines"]) > 1 else "",
@@ -608,6 +640,17 @@ async def upload_case_file(
     ]
 
     new_case_id = f"file_{int(time.time()*1000)}"
+    file_official_url = "https://www.law.go.kr"
+    if case_no and case_no != "사내 승소 판례":
+        try:
+            lookup_prec = LawService.get_precedent_by_case_no(case_no)
+            if lookup_prec and lookup_prec.get("공식링크"):
+                file_official_url = lookup_prec["공식링크"]
+        except Exception:
+            pass
+        if not file_official_url or file_official_url == "https://www.law.go.kr":
+            file_official_url = f"https://www.law.go.kr/precSc.do?menuId=7&query={urllib.parse.quote(case_no)}"
+
     custom_theme_info = {
         "id": new_case_id,
         "icon": "📁",
@@ -617,7 +660,7 @@ async def upload_case_file(
         "case_no": case_no,
         "court_name": court,
         "judgment_date": datetime.now().strftime("%Y.%m.%d"),
-        "official_url": "https://www.law.go.kr",
+        "official_url": file_official_url,
         "image_url": "/static/images/news_wage.jpg",
         "fact_summary": clean_text[:250],
         "court_holding": llm_result["summary_lines"][1] if len(llm_result["summary_lines"]) > 1 else "",

@@ -5,6 +5,8 @@ import xmltodict
 from app.core.config import LAW_API_KEY, LLM_API_KEY, DEFAULT_GEMINI_MODEL
 from google import genai
 
+import urllib.parse
+
 class LawService:
     """
     [Core Principle 1] 출처의 신빙성 보장 모듈
@@ -15,6 +17,7 @@ class LawService:
 
     SEARCH_URL = "https://www.law.go.kr/DRF/lawSearch.do"
     SERVICE_URL = "https://www.law.go.kr/DRF/lawService.do"
+    OFFICIAL_VIEW_BASE = "https://www.law.go.kr/LSW/precInfoP.do?precSeq="
     OFFICIAL_WEB_BASE = "https://www.law.go.kr/precSc.do?menuId=7&query="
 
     HEADERS = {
@@ -37,8 +40,10 @@ class LawService:
 
     @classmethod
     def get_official_url(cls, prec_id: str) -> str:
-        """국가법령정보센터 공식 판례 웹페이지 조회 링크 생성"""
-        return f"{cls.OFFICIAL_WEB_BASE}{prec_id}"
+        """국가법령정보센터 공식 판례 웹페이지 판결문 뷰어 직접 조회 링크 생성"""
+        if prec_id and str(prec_id).isdigit():
+            return f"{cls.OFFICIAL_VIEW_BASE}{prec_id}"
+        return f"{cls.OFFICIAL_WEB_BASE}{urllib.parse.quote(str(prec_id))}"
 
     @classmethod
     def get_intent_keywords(cls, user_query: str) -> List[str]:
